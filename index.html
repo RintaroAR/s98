@@ -76,7 +76,6 @@
     </div>
     
     <script>
-        // モデルの初期位置と向き
         const initialPosition = { x: 0, y: 0, z: 0 };
         const initialRotation = { x: 0, y: 180, z: 0 };
         const initialScale = { x: 0.1, y: 0.1, z: 0.1 };
@@ -88,7 +87,6 @@
         model.setAttribute('rotation', initialRotation);
         model.setAttribute('scale', initialScale);
 
-        // 位置と回転を表示する関数
         function updateInfo() {
             const position = model.getAttribute('position');
             const rotation = model.getAttribute('rotation');
@@ -96,7 +94,6 @@
             rotationDisplay.textContent = `Rotation: (${rotation.x.toFixed(2)}, ${rotation.y.toFixed(2)}, ${rotation.z.toFixed(2)})`;
         }
 
-        // モデルの操作関数
         function moveModel(direction) {
             const position = model.getAttribute('position');
             switch(direction) {
@@ -155,10 +152,27 @@
         document.getElementById('capture').addEventListener('click', () => {
             const sceneEl = document.querySelector('a-scene');
             const renderer = sceneEl.renderer;
+            const video = document.querySelector('video'); // カメラ映像用ビデオ要素
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            const width = renderer.domElement.width;
+            const height = renderer.domElement.height;
+
+            // Canvasサイズをレンダラーと同じに設定
+            canvas.width = width;
+            canvas.height = height;
+
+            // 1. ビデオ映像（カメラ映像）を描画
+            if (video && video.readyState === video.HAVE_ENOUGH_DATA) {
+                context.drawImage(video, 0, 0, width, height);
+            }
+
+            // 2. 3Dシーンの描画を追加
             renderer.render(sceneEl.object3D, sceneEl.camera);
-            
-            // canvasから画像データを取得し、保存
-            const dataURL = renderer.domElement.toDataURL("image/png");
+            context.drawImage(renderer.domElement, 0, 0);
+
+            // 3. 画像として保存
+            const dataURL = canvas.toDataURL("image/png");
             const link = document.createElement('a');
             link.href = dataURL;
             link.download = 'screenshot.png';
